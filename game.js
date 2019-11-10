@@ -1,5 +1,7 @@
 const game = {
     ctx    : null,
+    platform: null,
+    ball: null,
     sprites: {
         background: null,
         ball      : null,
@@ -35,8 +37,8 @@ const game = {
     render() {
         //render
         this.ctx.drawImage(this.sprites.background, 0, 0);
-        this.ctx.drawImage(this.sprites.ball, 0, 0);
-        this.ctx.drawImage(this.sprites.platform, 0, 0);
+        this.ctx.drawImage(this.sprites.ball, 0, 0, this.ball.width, this.ball.height, this.ball.x, this.ball.y, this.ball.width, this.ball.height);
+        this.ctx.drawImage(this.sprites.platform, this.platform.x, this.platform.y);
     },
     start() {
         this.init();
@@ -46,6 +48,17 @@ const game = {
 
     }
 };
+
+game.ball = {
+    x: 320,
+    y: 270,
+    width: 20,
+    height: 20,
+}
+game.platform = {
+    x: 280,
+    y: 300,
+}
 
 window.addEventListener('load', () => {
     game.start();
