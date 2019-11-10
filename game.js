@@ -1,3 +1,9 @@
+const keys = {
+    left : 37,
+    right: 39,
+    space: 32,
+}
+
 const game = {
     ctx     : null,
     platform: null,
@@ -18,18 +24,18 @@ const game = {
         this.setEvents();
     },
 
-    //вызов люраюотчиков нажатия клавиш
+    //вызов обработчиков нажатия клавиш
     setEvents() {
         window.addEventListener("keydown", (e) => {
-            if (e.keyCode === 37) {
-                this.platform.dx = -this.platform.velocity;
-            } else if (e.keyCode === 39) {
-                this.platform.dx = this.platform.velocity;
+            if (e.keyCode === keys.space) {
+                this.platform.fire();
+            } else if (e.keyCode === keys.left || e.keyCode === keys.right) {
+                this.platform.start(e.keyCode);
             }
         });
 
         window.addEventListener("keyup", (e) => {
-            this.platform.dx = 0;
+            this.platform.stop();
         });
     },
 
@@ -65,7 +71,7 @@ const game = {
     //обновление координат
     update() {
         this.platform.move();
-
+        this.ball.move();
     },
 
     //рекурсивная функция объединяет все отрисовки и обновления
@@ -104,11 +110,25 @@ const game = {
 };
 
 //объект мяча
-game.ball     = {
-    x     : 320,
-    y     : 270,
-    width : 20,
-    height: 20,
+game.ball = {
+    velocity: 3,
+    dy      : 0,
+    x       : 320,
+    y       : 280,
+    width   : 20,
+    height  : 20,
+
+    //смещение мяча
+    start() {
+        this.dy = -this.velocity;
+    },
+
+    //изменение координат
+    move() {
+        if (this.dy) {
+            this.y += this.dy;
+        }
+    }
 }
 
 //объект платформы
@@ -118,10 +138,37 @@ game.platform = {
     dx      : 0,
     x       : 280,
     y       : 300,
+    ball: game.ball,
+
+    //смещение платформы
+    start(direction) {
+        if (direction === keys.left) {
+            this.dx = -this.velocity;
+        } else if (direction === keys.right) {
+            this.dx = this.velocity;
+        }
+    },
+
+    //прекращение смещения платформы
+    stop() {
+        this.dx = 0;
+    },
+
     //изменение координаты x
     move() {
         if (this.dx) {
             this.x += this.dx;
+            if (this.ball) {
+                this.ball.x += this.dx;
+            }
+        }
+    },
+
+    //выстред мячем
+    fire() {
+        if (this.ball) {
+            this.ball.start();
+            this.ball = null;
         }
     }
 }
