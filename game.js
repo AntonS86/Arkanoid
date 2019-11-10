@@ -63,8 +63,10 @@ const game = {
         for (let row = 0; row < this.rows; row += 1) {
             for (let col = 0; col < this.cols; col += 1) {
                 this.blocks.push({
-                    x: 64 * col + 65,
-                    y: 24 * row + 30,
+                    width : 60,
+                    height: 20,
+                    x     : 64 * col + 65,
+                    y     : 24 * row + 30,
                 })
             }
         }
@@ -74,6 +76,27 @@ const game = {
     update() {
         this.platform.move();
         this.ball.move();
+
+        //проверка на столкновение с блоком
+        this.collideBlocks();
+        this.collidePlatform();
+
+
+    },
+
+    //проверка на столкновение с блоком
+    collideBlocks() {
+        this.blocks.forEach((block) => {
+            if (this.ball.collide(block)) {
+                this.ball.bumpBlock(block);
+            }
+        });
+    },
+    //столкновение с платформой
+    collidePlatform() {
+        if (this.ball.collide(this.platform)) {
+            this.ball.bumpPlatform(this.platform);
+        }
     },
 
     //рекурсивная функция объединяет все отрисовки и обновления
@@ -142,6 +165,36 @@ game.ball = {
         if (this.dx) {
             this.x += this.dx;
         }
+    },
+
+    //столкновение с элиментом
+    collide(element) {
+        //следующий кажр анимации
+        const x = this.x + this.dx;
+        const y = this.y + this.dy;
+
+        if (x + this.width > element.x &&
+            x < element.x + element.width &&
+            y + this.height > element.y &&
+            y < element.y + element.height) {
+            return true;
+        }
+
+        return false;
+    },
+
+    //изменение направления после столкновения
+    bumpBlock() {
+        this.dy *= -1;
+    },
+
+    //изменений угла направления после столкновения с платформой
+    bumpPlatform(platform) {
+        //точка касания мяча и платформы
+        const touchX = this.x + this.width / 2;
+        //изменение угла отскока
+        this.dx      = this.velocity * platform.getTouchOffset(touchX);
+        this.dy *= -1;
     }
 }
 
@@ -152,6 +205,8 @@ game.platform = {
     dx      : 0,
     x       : 280,
     y       : 300,
+    width   : 100,
+    height  : 14,
     ball    : game.ball,
 
     //смещение платформы
@@ -178,12 +233,26 @@ game.platform = {
         }
     },
 
-    //выстред мячем
+    //выстрел мячем
     fire() {
         if (this.ball) {
             this.ball.start();
             this.ball = null;
         }
+    },
+
+    //алгоритм смещения шара при касании платформы
+    getTouchOffset(x) {
+        //растояние справа от касания
+        const diff   = (this.x + this.width) - x;
+        //растояние слева от касания
+        const offset = this.width - diff;
+        //берем платформу равнуб 2 частям, расчитаем точку касания по отношению
+        //к 2 частям this.width = 2; offset = result;
+        //result равен точке от 0 до 2
+        const result = 2 * offset / this.width;
+        //вычитаем еденицу, чтобы получить точку от -1 до 1
+        return result - 1;
     }
 }
 
