@@ -77,6 +77,8 @@ const game = {
     update() {
         this.platform.move();
         this.ball.move();
+        //проверка на столкновения с границей экрана
+        this.ball.collideWorldBounds()
 
         //проверка на столкновение с блоком
         this.collideBlocks();
@@ -172,7 +174,7 @@ game.ball = {
 
     //столкновение с элиментом
     collide(element) {
-        //следующий кажр анимации
+        //следующий кадр анимации
         const x = this.x + this.dx;
         const y = this.y + this.dy;
 
@@ -200,6 +202,38 @@ game.ball = {
         //изменение угла отскока
         this.dx      = this.velocity * platform.getTouchOffset(touchX);
         this.dy = -this.velocity;
+    },
+
+    //изменение направление после столкновения с краем мира
+    collideWorldBounds() {
+        //следующий кадр анимации
+        const x = this.x + this.dx;
+        const y = this.y + this.dy;
+
+        //координаты мяча
+        const ballLeft = x;
+        const ballRight = ballLeft + this.width;
+        const ballTop = y;
+        const ballBottom = ballTop + this.height;
+
+        //координаты мира
+        const worldLeft = 0;
+        const worldRight = game.width;
+        const worldTop = 0;
+        const worldBottom = game.height;
+
+        if (ballLeft < worldLeft) {
+            this.x = 0;
+            this.dx *= -1;
+        } else if (ballRight > worldRight) {
+            this.x = worldRight - this.width;
+            this.dx *= -1;
+        } else if (ballTop < worldTop) {
+            this.y = 0;
+            this.dy *= -1;
+        } else if (ballBottom > worldBottom) {
+            console.log('game over');
+        }
     }
 }
 
