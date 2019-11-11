@@ -63,6 +63,7 @@ const game = {
         for (let row = 0; row < this.rows; row += 1) {
             for (let col = 0; col < this.cols; col += 1) {
                 this.blocks.push({
+                    active: true,
                     width : 60,
                     height: 20,
                     x     : 64 * col + 65,
@@ -87,7 +88,7 @@ const game = {
     //проверка на столкновение с блоком
     collideBlocks() {
         this.blocks.forEach((block) => {
-            if (this.ball.collide(block)) {
+            if (block.active && this.ball.collide(block)) {
                 this.ball.bumpBlock(block);
             }
         });
@@ -120,7 +121,9 @@ const game = {
     //отрисовка всех блоков
     renderBlocks() {
         this.blocks.forEach((block) => {
-            this.ctx.drawImage(this.sprites.block, block.x, block.y);
+            if (block.active) {
+                this.ctx.drawImage(this.sprites.block, block.x, block.y);
+            }
         })
     },
 
@@ -184,8 +187,9 @@ game.ball = {
     },
 
     //изменение направления после столкновения
-    bumpBlock() {
+    bumpBlock(block) {
         this.dy *= -1;
+        block.active = false;
     },
 
     //изменений угла направления после столкновения с платформой
