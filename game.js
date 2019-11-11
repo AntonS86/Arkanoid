@@ -194,11 +194,12 @@ game.ball = {
 
     //изменений угла направления после столкновения с платформой
     bumpPlatform(platform) {
+        if (this.dy < 0) return;
         //точка касания мяча и платформы
         const touchX = this.x + this.width / 2;
         //изменение угла отскока
         this.dx      = this.velocity * platform.getTouchOffset(touchX);
-        this.dy *= -1;
+        this.dy = -this.velocity;
     }
 }
 
