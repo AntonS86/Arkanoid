@@ -75,16 +75,16 @@ const game = {
 
     //обновление координат
     update() {
-        this.platform.move();
-        this.ball.move();
         //проверка на столкновения с границей экрана
-        this.ball.collideWorldBounds()
+        this.ball.collideWorldBounds();
+        this.platform.collideWorldBounds();
 
         //проверка на столкновение с блоком
         this.collideBlocks();
         this.collidePlatform();
 
-
+        this.platform.move();
+        this.ball.move();
     },
 
     //проверка на столкновение с блоком
@@ -196,12 +196,12 @@ game.ball = {
 
     //изменений угла направления после столкновения с платформой
     bumpPlatform(platform) {
-        if (this.dy < 0) return;
+        if (this.dy <= 0) return;
         //точка касания мяча и платформы
         const touchX = this.x + this.width / 2;
         //изменение угла отскока
         this.dx      = this.velocity * platform.getTouchOffset(touchX);
-        this.dy = -this.velocity;
+        this.dy      = -this.velocity;
     },
 
     //изменение направление после столкновения с краем мира
@@ -211,15 +211,15 @@ game.ball = {
         const y = this.y + this.dy;
 
         //координаты мяча
-        const ballLeft = x;
-        const ballRight = ballLeft + this.width;
-        const ballTop = y;
+        const ballLeft   = x;
+        const ballRight  = ballLeft + this.width;
+        const ballTop    = y;
         const ballBottom = ballTop + this.height;
 
         //координаты мира
-        const worldLeft = 0;
-        const worldRight = game.width;
-        const worldTop = 0;
+        const worldLeft   = 0;
+        const worldRight  = game.width;
+        const worldTop    = 0;
         const worldBottom = game.height;
 
         if (ballLeft < worldLeft) {
@@ -269,6 +269,22 @@ game.platform = {
             if (this.ball) {
                 this.ball.x += this.dx;
             }
+        }
+    },
+
+    //столкновение платформы с краем мира
+    collideWorldBounds() {
+        const x = this.x + this.dx;
+
+        const platformLeft  = x;
+        const platformRight = platformLeft + this.width;
+
+        const worldLeft  = 0;
+        const worldRight = game.width;
+
+        if (platformLeft < worldLeft || platformRight > worldRight) {
+            //остановка движения
+            this.dx = 0;
         }
     },
 
