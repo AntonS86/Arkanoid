@@ -22,10 +22,21 @@ const game = {
         block     : null,
     },
 
+    sounds: {
+        bump: null,
+    },
+
     //инициализация
     init() {
         this.ctx = document.getElementById('mycanvas').getContext('2d');
+        this.setTextFont();
         this.setEvents();
+    },
+
+    //Установка цвета шрифта
+    setTextFont() {
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font      = "20px Arial";
     },
 
     //вызов обработчиков нажатия клавиш
@@ -45,18 +56,32 @@ const game = {
 
     //предзагрузка спрайтов картинок
     preload(callback) {
-        let loaded        = 0;
-        let required      = Object.keys(this.sprites).length;
-        const onImageLoad = () => {
+        let loaded           = 0;
+        let required         = Object.keys(this.sprites).length;
+        required += Object.keys(this.sounds).length;
+        const onResourceLoad = () => {
             loaded += 1;
             if (loaded >= required) {
                 callback();
             }
         };
+
+        this.preloadSprites(onResourceLoad);
+        this.preloadAudio(onResourceLoad);
+    },
+
+    preloadSprites(onResourceLoad) {
         Object.keys(this.sprites).forEach((key) => {
             this.sprites[key]     = new Image();
             this.sprites[key].src = `img/${key}.png`;
-            this.sprites[key].addEventListener('load', onImageLoad);
+            this.sprites[key].addEventListener('load', onResourceLoad);
+        });
+    },
+
+    preloadAudio(onResourceLoad) {
+        Object.keys(this.sounds).forEach((key) => {
+            this.sounds[key] = new Audio(`sounds/${key}.mp3`);
+            this.sounds[key].addEventListener('canplaythrough', onResourceLoad, {once: true});
         });
     },
 
@@ -103,6 +128,7 @@ const game = {
             if (block.active && this.ball.collide(block)) {
                 this.ball.bumpBlock(block);
                 this.addScore();
+                this.sounds.bump.play();
             }
         });
     },
@@ -110,6 +136,7 @@ const game = {
     collidePlatform() {
         if (this.ball.collide(this.platform)) {
             this.ball.bumpPlatform(this.platform);
+            this.sounds.bump.play();
         }
     },
 
@@ -129,9 +156,10 @@ const game = {
     render() {
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.ctx.drawImage(this.sprites.background, 0, 0);
-        this.ctx.drawImage(this.sprites.ball, 0, 0, this.ball.width, this.ball.height, this.ball.x, this.ball.y, this.ball.width, this.ball.height);
+        this.ctx.drawImage(this.sprites.ball, this.ball.frame * this.ball.width, 0, this.ball.width, this.ball.height, this.ball.x, this.ball.y, this.ball.width, this.ball.height);
         this.ctx.drawImage(this.sprites.platform, this.platform.x, this.platform.y);
         this.renderBlocks();
+        this.ctx.fillText("Score: " + this.score, 15, 20);
     },
 
     //отрисовка всех блоков
@@ -174,11 +202,20 @@ game.ball = {
     y       : 280,
     width   : 20,
     height  : 20,
+    frame   : 0,
 
     //смещение мяча
     start() {
         this.dy = -this.velocity;
         this.dx = game.random(-this.velocity, this.velocity);
+        this.animate();
+    },
+
+    //анимвция мяча
+    animate() {
+        setInterval(() => {
+            this.frame = this.frame >= 3 ? 0 : ++this.frame;
+        }, 100);
     },
 
     //изменение координат
@@ -245,12 +282,15 @@ game.ball = {
         if (ballLeft < worldLeft) {
             this.x = 0;
             this.dx *= -1;
+            game.sounds.bump.play();
         } else if (ballRight > worldRight) {
             this.x = worldRight - this.width;
             this.dx *= -1;
+            game.sounds.bump.play();
         } else if (ballTop < worldTop) {
             this.y = 0;
             this.dy *= -1;
+            game.sounds.bump.play();
         } else if (ballBottom > worldBottom) {
             game.end('Вы выйграли');
         }
