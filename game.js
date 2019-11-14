@@ -5,6 +5,7 @@ const keys = {
 }
 
 const game = {
+    running : true,
     ctx     : null,
     platform: null,
     ball    : null,
@@ -13,6 +14,7 @@ const game = {
     cols    : 8,
     width   : 640,
     height  : 360,
+    score   : 0,
     sprites : {
         background: null,
         ball      : null,
@@ -87,11 +89,20 @@ const game = {
         this.ball.move();
     },
 
+    //счетчик разбитых блков
+    addScore() {
+        this.score += 1;
+        if (this.score >= this.blocks.length) {
+            this.end('Вы выйграли');
+        }
+    },
+
     //проверка на столкновение с блоком
     collideBlocks() {
         this.blocks.forEach((block) => {
             if (block.active && this.ball.collide(block)) {
                 this.ball.bumpBlock(block);
+                this.addScore();
             }
         });
     },
@@ -104,11 +115,14 @@ const game = {
 
     //рекурсивная функция объединяет все отрисовки и обновления
     run() {
-        window.requestAnimationFrame(() => {
-            this.update();
-            this.render();
-            this.run();
-        });
+        if (this.running) {
+
+            window.requestAnimationFrame(() => {
+                this.update();
+                this.render();
+                this.run();
+            });
+        }
     },
 
     //отририсовка всех спрайтов
@@ -137,6 +151,12 @@ const game = {
             this.run()
         });
 
+    },
+
+    end(message) {
+        this.running = false;
+        alert(message);
+        window.location.reload();
     },
 
     //случайное число
@@ -232,7 +252,7 @@ game.ball = {
             this.y = 0;
             this.dy *= -1;
         } else if (ballBottom > worldBottom) {
-            console.log('game over');
+            game.end('Вы выйграли');
         }
     }
 }
